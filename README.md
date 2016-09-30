@@ -1,2 +1,2 @@
 # practice
-practicing git
+Drawing graphs with Raphael js library
