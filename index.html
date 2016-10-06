@@ -4,18 +4,50 @@
     <title>Graph Draw</title>
     <script src="src/libs/raphael.js" type="text/javascript" charset="utf-8"></script>
     <script src="src/libs/graphdraw.js" type="text/javascript" charset="utf-8"></script>
+    <script src="src/libs/jscolor.min.js" type="text/javascript" charset="utf-8"></script>
     <style type="text/css" media="screen">
         #holder {
             -moz-border-radius: 10px;
             -webkit-border-radius: 10px;
             border: solid 1px #333;
+            margin-left: 2px;
+            flex: 3;
+        }
+        #container{
+            display: flex;
             width: 900px;
-            heght: 480px;
-            margin: 0 auto;
+            height: 480px;
+        }
+        #actionBar{
+            flex: 1;
+            border: 1px solid lightcoral;
+            border-radius: 10px;
+        }
+        input{
+            margin-top: 10px;
+            margin-left: 5px;
+            width: 80px;
+            display: inline;
+        }
+        p{
+          display: inline;
+          margin-left: 10px;
         }
     </style>
 </head>
 <body>
-<div id="holder"></div>
+    <div id="container">
+        <div id="actionBar">
+            <input type="radio" name="type" value="rectangle" checked> Rectangle<br>
+            <input type="radio" name="type" value="ellipse"> Ellipse<br>
+            <input type="radio" name="type" value="circle"> Circle<br>
+            <input type="text" id="name"><p>Text</p><br>
+            <input class="jscolor"><p>Color</p><br>
+            <input type="text" id="img"><p>Image link</p>
+            <input type="text" id="connects"><p>Connects</p><br>
+            <input type="submit" value="Add" id="add">
+        </div>
+        <div id="holder"></div>
+    </div>
 </body>
 </html>

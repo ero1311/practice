@@ -1,3 +1,87 @@
+shapes = [];
+connections = [];
+//node object
+var node = (function() {
+    var nextId = 1;
+
+    return function node(name, type, color, image, connects) {
+        this.name=name;
+        this.image=image;
+        this.type = type;
+        this.color=color;
+        this.connects=connects;
+        this.id = nextId++;
+        this.set="placeholder";
+    }
+})();
+//add node
+
+function addNode(){
+    var Nnode=new node(document.getElementById('name').value,
+                       document.querySelector('input[name="type"]:checked').value,
+                       document.getElementsByClassName('jscolor')[0].value,
+                       document.getElementById('img').value,
+                       document.getElementById('connects').value.split(',')
+    );
+    r.setStart();
+    switch(Nnode.type){
+        case "ellipse":
+            Nnode.type=r.ellipse(190,100,120,80);
+            Nnode.name=r.text(190,100,Nnode.name);
+           // Nnode.image=r.image(Nnode.image,190,100,60,40);
+            break;
+        case "circle":
+            Nnode.type=r.circle(190,100,60);
+            Nnode.name=r.text(190,100,Nnode.name);
+            //Nnode.image=r.image(Nnode.image,190,100,60,40);
+            break;
+        default:
+            Nnode.type=r.rect(190, 100, 120, 80, 10);
+            Nnode.name=r.text(220,120,Nnode.name);
+           // Nnode.image=r.image(Nnode.image,220,120,60,40);
+            break;
+    }
+    Nnode.set=r.setFinish();
+    Nnode.type.attr({fill: Nnode.image, stroke: Nnode.color, "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
+    Nnode.set.draggable();
+    shapes.push(Nnode);
+    drawConns();
+}
+function drawConns(){
+    for (var i = 0, ii = shapes.length; i < ii; i++) {
+        for(var j=0; j<shapes[i].connects.length; j++) {
+            if(shapes[i].connects[j]!="")
+                connections.push(r.connection(shapes[i].type,shapes[parseInt(shapes[i].connects[j])].type,"000"));
+        }
+    }
+}
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('add').addEventListener('click', addNode);
+});
+//implementation of draggability
+Raphael.st.draggable = function() {
+    var me = this,
+        lx = 0,
+        ly = 0,
+        ox = 0,
+        oy = 0,
+        moveFnc = function(dx, dy) {
+            lx = dx + ox;
+            ly = dy + oy;
+            me.transform('t' + lx + ',' + ly);
+            for (var i = connections.length; i--;) {
+                r.connection(connections[i]);
+            }
+        },
+        startFnc = function() {},
+        endFnc = function() {
+            ox = lx;
+            oy = ly;
+        };
+
+    this.drag(moveFnc, startFnc, endFnc);
+};
+//connection of two nodes
 Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (obj1.line && obj1.from && obj1.to) {
         line = obj1;
@@ -54,37 +138,6 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
         };
     }
 };
-
-var el;
 window.onload = function () {
-    var dragger = function () {
-            this.ox = this.type == "rect" ? this.attr("x") : this.attr("cx");
-            this.oy = this.type == "rect" ? this.attr("y") : this.attr("cy");
-            this.animate({"fill-opacity": .2}, 500);
-        },
-        move = function (dx, dy) {
-            var att = this.type == "rect" ? {x: this.ox + dx, y: this.oy + dy} : {cx: this.ox + dx, cy: this.oy + dy};
-            this.attr(att);
-            for (var i = connections.length; i--;) {
-                r.connection(connections[i]);
-            }
-        },
-        up = function () {
-            this.animate({"fill-opacity": 0}, 500);
-        },
-        r = Raphael("holder", 900, 480),
-        connections = [],
-        shapes = [  r.rect(190, 100, 60, 40, 10),
-            r.rect(290, 80, 60, 40, 10),
-            r.rect(290, 180, 60, 40, 10),
-            r.rect(450, 100, 60, 40, 10)
-        ];
-        shapeColors=["#456","#345","#567","#678"];
-    for (var i = 0, ii = shapes.length; i < ii; i++) {
-        shapes[i].attr({fill: shapeColors[i], stroke: shapeColors[i], "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
-        shapes[i].drag(move, dragger, up);
-    }
-    connections.push(r.connection(shapes[0], shapes[1], "#000"));
-    connections.push(r.connection(shapes[1], shapes[2], "#000", "#fff|5"));
-    connections.push(r.connection(shapes[1], shapes[3], "#000", "#fff"));
+        r = Raphael("holder");
 };
