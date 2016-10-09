@@ -139,5 +139,5 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
     }
 };
 window.onload = function () {
-        r = Raphael("holder");
+        r = Raphael("holder","100%","100%");
 };

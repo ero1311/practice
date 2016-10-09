@@ -1,15 +1,12 @@
 {
+  "name": "Mind-map",
+  "description": "A graph drawing app",
+  "version": "0.1",
   "manifest_version": 2,
-
-  "name": "Getting started example",
-  "description": "This extension shows a Google Image search result for the current page",
-  "version": "1.0",
-
-  "browser_action": {
-    "default_icon": "icon.png",
-    "default_popup": "index.html"
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
   },
-  "permissions": [
-    "activeTab"
-  ]
+  "icons": { "48": "icon_48.png", "128": "icon_128.png" }
 }
