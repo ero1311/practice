@@ -1,5 +1,7 @@
 shapes = [];
 connections = [];
+var selected=null, x_pos = 0, y_pos = 0,x_elem = 0, y_elem = 0,selectedId;
+
 //node object
 var node = (function() {
     var nextId = 1;
@@ -11,93 +13,100 @@ var node = (function() {
         this.color=color;
         this.connects=connects;
         this.id = nextId++;
-        this.set="placeholder";
+        this.box='placeholder';
+
     }
 })();
-//add node
 
-function addNode(){
-    var Nnode=new node(document.getElementById('name').value,
-                       document.querySelector('input[name="type"]:checked').value,
-                       document.getElementsByClassName('jscolor')[0].value,
-                       document.getElementById('img').value,
-                       document.getElementById('connects').value.split(',')
-    );
-    r.setStart();
-    switch(Nnode.type){
-        case "ellipse":
-            Nnode.type=r.ellipse(190,100,120,80);
-            Nnode.name=r.text(190,100,Nnode.name);
-           // Nnode.image=r.image(Nnode.image,190,100,60,40);
-            break;
-        case "circle":
-            Nnode.type=r.circle(190,100,60);
-            Nnode.name=r.text(190,100,Nnode.name);
-            //Nnode.image=r.image(Nnode.image,190,100,60,40);
-            break;
-        default:
-            Nnode.type=r.rect(190, 100, 120, 80, 10);
-            Nnode.name=r.text(220,120,Nnode.name);
-           // Nnode.image=r.image(Nnode.image,220,120,60,40);
-            break;
-    }
-    Nnode.set=r.setFinish();
-    Nnode.type.attr({fill: Nnode.image, stroke: Nnode.color, "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
-    Nnode.set.draggable();
-    shapes.push(Nnode);
-    drawConns();
+//box object
+function Box(x,y,width,height){
+    this.x=x;
+    this.y=y;
+    this.width=width;
+    this.height=height;
 }
-function drawConns(){
-    for (var i = 0, ii = shapes.length; i < ii; i++) {
-        for(var j=0; j<shapes[i].connects.length; j++) {
-            if(shapes[i].connects[j]!="")
-                connections.push(r.connection(shapes[i].type,shapes[parseInt(shapes[i].connects[j])].type,"000"));
-        }
-    }
-}
+
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('add').addEventListener('click', addNode);
 });
-//implementation of draggability
-Raphael.st.draggable = function() {
-    var me = this,
-        lx = 0,
-        ly = 0,
-        ox = 0,
-        oy = 0,
-        moveFnc = function(dx, dy) {
-            lx = dx + ox;
-            ly = dy + oy;
-            me.transform('t' + lx + ',' + ly);
-            for (var i = connections.length; i--;) {
-                r.connection(connections[i]);
-            }
-        },
-        startFnc = function() {},
-        endFnc = function() {
-            ox = lx;
-            oy = ly;
-        };
 
-    this.drag(moveFnc, startFnc, endFnc);
-};
-//connection of two nodes
+function addNode(){
+    var Nnode=new node(document.getElementById('name').value,
+        document.querySelector('input[name="type"]:checked').value,
+        document.getElementsByClassName('jscolor')[0].value,
+        document.getElementById('img').value,
+        document.getElementById('connects').value.split(',')
+    );
+    var Ndiv=document.createElement('div'),
+        Ntext=document.createElement('p'),
+        Nimage=document.createElement('img');
+    Ndiv.className=Nnode.type;
+    Ndiv.id='div'+Nnode.id;
+    Ntext.textContent=Nnode.name;
+    Nimage.src=Nnode.image;
+    Ndiv.appendChild(Ntext);
+    Ndiv.appendChild(Nimage);
+    Ndiv.onmousedown=function () {
+        selectedId=parseInt(this.id.slice(3))-1;
+        _drag_init(this);
+        return false;
+    };
+    document.getElementById('holder').appendChild(Ndiv);
+    Nnode.box=new Box(Ndiv.offsetLeft,Ndiv.offsetTop,Ndiv.offsetWidth,Ndiv.offsetHeight);
+    shapes.push(Nnode);
+    drawConns();
+}
+//making nodes draggable
+function _move_elem(e) {
+    x_pos = window.event.clientX;
+    y_pos = window.event.clientY;
+    if (selected !== null) {
+        selected.style.left = (x_pos - x_elem) + 'px';
+        selected.style.top = (y_pos - y_elem) + 'px';
+        shapes[selectedId].box.x=(x_pos - x_elem);
+        shapes[selectedId].box.y=(y_pos - y_elem);
+    }
+    for (var i = connections.length; i--;) {
+        r.connection(connections[i]);
+    }
+}
+
+function _drag_init(elem) {
+    selected = elem;
+    x_elem = x_pos - selected.offsetLeft;
+    y_elem = y_pos - selected.offsetTop;
+}
+
+function _destroy() {
+    selected = null;
+    selectedId=null;
+}
+
+function drawConns(){
+    for (var i = 0, ii = shapes.length; i < ii; i++) {
+        for(var j=0; j<shapes[i].connects.length; j++) {
+            if(shapes[i].connects[j]!="") {
+                connections.push(r.connection(shapes[i].box, shapes[parseInt(shapes[i].connects[j])].box, "000"));
+            }
+        }
+    }
+}
+
+
 Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (obj1.line && obj1.from && obj1.to) {
         line = obj1;
         obj1 = line.from;
         obj2 = line.to;
     }
-    var bb1 = obj1.getBBox(),
-        bb2 = obj2.getBBox(),
-        p = [{x: bb1.x + bb1.width / 2, y: bb1.y - 1},
-            {x: bb1.x + bb1.width / 2, y: bb1.y + bb1.height + 1},
-            {x: bb1.x - 1, y: bb1.y + bb1.height / 2},
-            {x: bb1.x + bb1.width + 1, y: bb1.y + bb1.height / 2},
-            {x: bb2.x + bb2.width / 2, y: bb2.y - 1},
-            {x: bb2.x + bb2.width / 2, y: bb2.y + bb2.height + 1},
-            {x: bb2.x - 1, y: bb2.y + bb2.height / 2},
-            {x: bb2.x + bb2.width + 1, y: bb2.y + bb2.height / 2}],
+    var p = [{x: obj1.x + obj1.width / 2, y: obj1.y - 1},
+            {x: obj1.x + obj1.width / 2, y: obj1.y + obj1.height + 1},
+            {x: obj1.x - 1, y: obj1.y + obj1.height / 2},
+            {x: obj1.x + obj1.width + 1, y: obj1.y + obj1.height / 2},
+            {x: obj2.x + obj2.width / 2, y: obj2.y - 1},
+            {x: obj2.x + obj2.width / 2, y: obj2.y + obj2.height + 1},
+            {x: obj2.x - 1, y: obj2.y + obj2.height / 2},
+            {x: obj2.x + obj2.width + 1, y: obj2.y + obj2.height / 2}],
         d = {}, dis = [];
     for (var i = 0; i < 4; i++) {
         for (var j = 4; j < 8; j++) {
@@ -114,10 +123,10 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
     } else {
         res = d[Math.min.apply(Math, dis)];
     }
-    var x1 = p[res[0]].x,
-        y1 = p[res[0]].y,
-        x4 = p[res[1]].x,
-        y4 = p[res[1]].y;
+    var x1 = p[res[0]].x-12,
+        y1 = p[res[0]].y-12,
+        x4 = p[res[1]].x-10,
+        y4 = p[res[1]].y-10;
     dx = Math.max(Math.abs(x1 - x4) / 2, 10);
     dy = Math.max(Math.abs(y1 - y4) / 2, 10);
     var x2 = [x1, x1, x1 - dx, x1 + dx][res[0]].toFixed(3),
@@ -138,6 +147,9 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
         };
     }
 };
+
 window.onload = function () {
-        r = Raphael("holder","100%","100%");
+    r = Raphael("holder", "100%", "100%");
+    document.onmousemove = _move_elem;
+    document.onmouseup = _destroy;
 };
